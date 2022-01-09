@@ -125,3 +125,40 @@ sub end($Outfile, $Workdir) { i2v($Outfile, $Workdir); }
 	blur($Workdir, $Algo);
 	end($Outfile, $Workdir);
 }
+
+__END__
+=pod
+
+=head1 NAME
+
+
+blur.pl - make a progressing (according several hardcoded laws) video blurring.
+B<Only linear blur in ready now.>
+
+=head1 USAGE
+
+blur.pl F<infile> blur_law F<outfile>
+
+=head1 OPTIONS
+
+=over 2
+
+=item F<infile> 
+
+Any B<valid> and acceptable by your ffmpeg video file
+
+=item blur_law 
+
+Blur algorithm. Only C<linear_in> implemented
+
+=item F<ourfile> 
+
+Video strem encoded in ffv1 by your ffmpeg
+
+=back
+
+=head1 CONGIGURATION
+
+All configuration can be done in source file. Read C<man convert> for undestanding of blur raduis and power
+
+=cut
