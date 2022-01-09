@@ -36,6 +36,7 @@ use File::Temp qw/tempdir cleanup/;
 use Cwd qw/cwd/;
 use List::Util qw/zip/;
 use File::Spec::Functions;
+use MCE::Map;
 
 # Utility funcs
 sub is_correct ($Infile) { 1; }
@@ -87,7 +88,7 @@ sub blur_in_linear($Workdir_with__pictures) {
 
 	# список списков параметров для blur
 	my @Blur_options = zip(\@Radius, \@Power, \@Files);
-	map(blur_image, @Blur_options);
+	mce_map { blur_image $_ } @Blur_options;
 }
 
 sub blur{ # $Workdir, $Algo
