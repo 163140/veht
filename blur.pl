@@ -202,7 +202,7 @@ Blur algorithm. Only C<linear_in> implemented
 
 =item F<ourfile> 
 
-Video strem encoded in ffv1 by your ffmpeg
+Video stream encoded in ffv1 by your ffmpeg and packed to mkv
 
 =back
 
