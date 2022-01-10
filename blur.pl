@@ -48,6 +48,10 @@ sub pnglist($Dir) {
 }
 sub round2 { my $Num = shift; return (int($Num*100)/100); }
 
+sub cli (my $In, my $Command, my $Out) {
+	error "No input file exist" if not ()
+}
+
 # PREPARE STAGE -> prepare (my $Infile, my $Workdir)
 sub v2i ($In, $Wdir) { # V_ideo TO I_mage
 	my $Command = join(
