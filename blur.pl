@@ -3,12 +3,12 @@
 #
 #         FILE: blur.pl
 #
-#        USAGE: ./blur.pl source-video.mp4 algorithm outvideo.mkv
+#        USAGE: blur.pl source-video.mp4 algorithm outvideo.mkv
 #
 #  DESCRIPTION: blur a video according math law
 #
 #      OPTIONS: none
-# REQUIREMENTS: ffmpeg, imagemagick
+# REQUIREMENTS: ffmpeg, imagemagick, MCE::Map
 #         BUGS: ---
 #        NOTES: ---
 #       AUTHOR: EA1A87, 163140@autistici.org
