@@ -8,7 +8,7 @@
 #  DESCRIPTION: blur a video according math law
 #
 #      OPTIONS: none
-# REQUIREMENTS: ffmpeg, imagemagick, MCE::Map
+# REQUIREMENTS: ffmpeg, imagemagick, MCE::Map, ffprobe, Filesys::Df
 #         BUGS: ---
 #        NOTES: ---
 #       AUTHOR: EA1A87, 163140@autistici.org
@@ -27,16 +27,22 @@ use strict;
 use warnings;
 use autodie;
 use utf8;
-use feature qw(switch signatures);
+use feature qw(switch signatures say);
 
 no warnings "experimental::signatures";
 no warnings "experimental::smartmatch";
 
-use File::Temp qw/tempdir cleanup/;
+use File::Temp qw/tempdir cleanup tempfile/;
 use Cwd qw/cwd/;
 use List::Util qw/zip/;
 use File::Spec::Functions;
 use MCE::Map;
+use Filesys::Df
+
+
+my %Algo = (
+	linear_in => 1,
+);
 
 # Utility funcs
 sub is_correct ($Infile) { 1; }
@@ -48,8 +54,47 @@ sub pnglist($Dir) {
 }
 sub round2 { my $Num = shift; return (int($Num*100)/100); }
 
-sub cli (my $In, my $Command, my $Out) {
-	error "No input file exist" if not ()
+sub is_space_enough(my $File) {
+	my $Frames =
+		qx(ffprobe -v error -select_streams v:0 -count_packets -show_entries stream=nb_read_packets -of csv=p=0 $File);
+	my ($Fh, $Temp) = tempfile();
+	close $Fh;
+	my $Out = $Temp . ".ppm";
+	qx(ffmpeg -v 0 -ss 00:01 -i $File -vframes 1 -q:v 2 $Out);
+	my $Size = -s $Out;
+	my $Required = $Size * $Frames;
+	my $Tmp_free_space = df($Out , 1)->{"bavail"};
+	my $CWD_free_space = df($File, 1)->{"bavail"};
+	unlink $Out;
+	my $Is_ok = ($Required < $Tmp_free_space)
+					 or ($Required < $CWD_free_space);
+	return $Is_ok
+}
+
+sub help_msg_algo {
+	say "USAGE: blur.pl input_video_file blur_algorithm outputvideo.mkv";
+	say "Implemented blur algorithms: linear_in"
+	say "See perldoc blur.pl for details"
+}
+
+sub cli () {
+	my ($In, $Command, $Out) = @_;
+
+	if not ( (scalar @_) == 3) {
+		help_msg();
+		die "Wrong args\n";
+	}
+	if not (-e -r $In) {
+		help_msg();
+		die "Input file don't exist or unreadable\n"
+	}
+
+	help_msg() if not $Algo{$Command};
+
+	die "Destination directory unwritable\n" unless (-w cwd());
+	warn "Output file exist\n" if (-e $Out);
+	die "No free space\n" unless is_space_enough($In);
+	return ($In, $Command, $Out);
 }
 
 # PREPARE STAGE -> prepare (my $Infile, my $Workdir)
