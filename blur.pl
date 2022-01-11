@@ -63,8 +63,8 @@ sub is_space_enough($File) {
 	qx(ffmpeg -v 0 -ss 00:00 -i $File -vframes 1 -q:v 2 $Out);
 	my $Size = -s $Out;
 	my $Required = $Size * $Frames;
-	my $Tmp_free_space = df($File, 1)->{"bavail"};
-	my $CWD_free_space = df($Temp, 1)->{"bavail"};
+	my $Tmp_free_space = df($Temp, 1)->{"bavail"};
+	my $CWD_free_space = df($File, 1)->{"bavail"};
 	unlink $Out;
 	close $Fh;
 	my $Is_ok = (($Required < $Tmp_free_space)
