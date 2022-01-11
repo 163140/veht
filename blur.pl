@@ -42,6 +42,7 @@ use Filesys::Df
 
 my %Algo = (
 	linear_in => 1,
+	linear_out =>1,
 );
 
 # Utility funcs
@@ -73,7 +74,7 @@ sub is_space_enough(my $File) {
 
 sub help_msg_algo {
 	say "USAGE: blur.pl input_video_file blur_algorithm outputvideo.mkv";
-	say "Implemented blur algorithms: linear_in"
+	say "Implemented blur algorithms: linear_in, linear_out"
 	say "See perldoc blur.pl for details"
 }
 
@@ -140,6 +141,21 @@ sub blur_in_linear($Workdir_with__pictures) {
 	mce_map { blur_image $_ } @Blur_options;
 }
 
+sub blur_linear_out($Workdir_with__pictures) {
+	my @PNGs = pnglist($Workdir_with__pictures);
+	my @Files = map { catfile($Workdir_with__pictures, $_) } @PNGs;
+
+	# y = - kx + b, b=0
+	my	$len		= scalar(@Files);
+	my	@a			= (1 .. $len);
+	my	@Radius	= map { int		( BLUR_RADIUS	* ( 1 - $_ / $len )) } @a;
+	my	@Power	= map { round2	( BLUR_POWER	* ( 1 - $_ / $len )) } @a;
+
+	# список списков параметров для blur
+	my @Blur_options = zip(\@Radius, \@Power, \@Files);
+	mce_map { blur_image $_ } @Blur_options;
+}
+
 sub blur{ # $Workdir, $Algo
 	my ($Workdir, $Algo) = @_;
 	given ($Algo) {
@@ -198,7 +214,7 @@ Any B<valid> and acceptable by your ffmpeg video file
 
 =item blur_law 
 
-Blur algorithm. Only C<linear_in> implemented
+Blur algorithm. Only C<linear_in> and C<linear_out> implemented
 
 =item F<ourfile> 
 
