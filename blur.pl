@@ -150,7 +150,7 @@ sub blur_linear_out($Workdir_with__pictures) {
 	# y = - kx + b, b=0
 	my	$len		= scalar(@Files);
 	my	@a			= (1 .. $len);
-	my	@Radius	= map { int		( BLUR_RADIUS	* ( 1 - $_ / $len )) } @a;
+	my	@Radius	= map { int		  ( BLUR_RADIUS	* ( 1 - $_ / $len )) } @a;
 	my	@Power	= map { round2	( BLUR_POWER	* ( 1 - $_ / $len )) } @a;
 
 	# список списков параметров для blur
@@ -161,7 +161,8 @@ sub blur_linear_out($Workdir_with__pictures) {
 sub blur{ # $Workdir, $Algo
 	my ($Workdir, $Algo) = @_;
 	given ($Algo) {
-		blur_in_linear($Workdir) when ("linear_in");
+		blur_in_linear	($Workdir) when ("linear_in");
+		blur_linear_out	($Workdir) when ("linear_out");
 		default { return 0 }
 	}
 }
