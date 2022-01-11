@@ -37,7 +37,7 @@ use Cwd qw/cwd/;
 use List::Util qw/zip/;
 use File::Spec::Functions;
 use MCE::Map;
-use Filesys::Df
+use Filesys::Df;
 
 
 my %Algo = (
@@ -55,42 +55,44 @@ sub pnglist($Dir) {
 }
 sub round2 { my $Num = shift; return (int($Num*100)/100); }
 
-sub is_space_enough(my $File) {
+sub is_space_enough($File) {
 	my $Frames =
 		qx(ffprobe -v error -select_streams v:0 -count_packets -show_entries stream=nb_read_packets -of csv=p=0 $File);
 	my ($Fh, $Temp) = tempfile();
-	close $Fh;
 	my $Out = $Temp . ".ppm";
-	qx(ffmpeg -v 0 -ss 00:01 -i $File -vframes 1 -q:v 2 $Out);
+	qx(ffmpeg -v 0 -ss 00:00 -i $File -vframes 1 -q:v 2 $Out);
 	my $Size = -s $Out;
 	my $Required = $Size * $Frames;
-	my $Tmp_free_space = df($Out , 1)->{"bavail"};
-	my $CWD_free_space = df($File, 1)->{"bavail"};
+	my $Tmp_free_space = df($File, 1)->{"bavail"};
+	my $CWD_free_space = df($Temp, 1)->{"bavail"};
 	unlink $Out;
-	my $Is_ok = ($Required < $Tmp_free_space)
-					 or ($Required < $CWD_free_space);
-	return $Is_ok
+	close $Fh;
+	my $Is_ok = (($Required < $Tmp_free_space)
+					 or  ($Required < $CWD_free_space));
+	return $Is_ok;
 }
 
-sub help_msg_algo {
+sub help_msg {
 	say "USAGE: blur.pl input_video_file blur_algorithm outputvideo.mkv";
-	say "Implemented blur algorithms: linear_in, linear_out"
-	say "See perldoc blur.pl for details"
+	say "Implemented blur algorithms: linear_in, linear_out";
+	say "See perldoc blur.pl for details\n";
 }
 
-sub cli () {
+sub cli {
 	my ($In, $Command, $Out) = @_;
 
-	if not ( (scalar @_) == 3) {
+	if (not ( (scalar @_) == 3)) {
 		help_msg();
 		die "Wrong args\n";
 	}
-	if not (-e -r $In) {
+	if (not (-e -r $In)) {
 		help_msg();
 		die "Input file don't exist or unreadable\n"
 	}
-
-	help_msg() if not $Algo{$Command};
+	if (not $Algo{$Command}) {
+		help_msg();
+		die "$Command not implemented";
+	}
 
 	die "Destination directory unwritable\n" unless (-w cwd());
 	warn "Output file exist\n" if (-e $Out);
@@ -181,9 +183,7 @@ sub end($Outfile, $Workdir) { i2v($Outfile, $Workdir); }
 #####################################################
 
 {
-	my $Infile = shift;
-	my $Algo = shift;
-	my $Outfile = shift;
+	my ($Infile, $Algo, $Outfile) = cli(@ARGV);
 	my $Workdir	= tempdir(DIR => cwd(), CLEANUP => 1);
 
 	prepare($Infile, $Workdir);
