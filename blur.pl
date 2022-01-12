@@ -22,7 +22,7 @@ use constant BLUR_RADIUS=> 60; # МАКСИМАЛЬНЫЙ РАДИУС РАЗМ�
 use constant BLUR_POWER	=> 17; # МАКСИМАЛЬНЫЙ СИЛА РАЗМЫТИЯ / man imagemagick
 use constant FPS		=> 30;
 use constant LOGLEVEL	=> "quiet"; # "quiet" or "warning" or "debug"
-use constant IMGFMT		=> "png";
+use constant IMGFMT		=> "ppm";
 
 use strict;
 use warnings;
