@@ -46,7 +46,15 @@ my %Algo = (
 	linear_out =>1,
 );
 
-# Utility funcs
+####################### MAIN SECTION ###########################
+{
+	my ($Infile, $Algo, $Outfile) = cli(@ARGV);
+	my $Workdir = prepare($Infile);
+	blur($Workdir, $Algo);
+	end($Outfile, $Workdir);
+}
+
+###################### Utility funcs ###########################
 sub is_correct ($Infile) { 1; }
 
 sub imglist($Dir) {
@@ -74,6 +82,8 @@ sub is_space_enough($File) {
 	return $Is_ok;
 }
 
+
+############################ CLI SECTION ###################################
 sub help_msg {
 	say "USAGE: blur.pl input_video_file blur_algorithm outputvideo.mkv";
 	say "Implemented blur algorithms: linear_in, linear_out";
@@ -102,7 +112,7 @@ sub cli {
 	return ($In, $Command, $Out);
 }
 
-# PREPARE STAGE -> prepare (my $Infile, my $Workdir)
+##################### PREPARE SECTION ###############################
 sub v2i ($In, $Wdir) { # V_ideo TO I_mage
 	my $Command = join(
 		"", # соединитель
@@ -113,12 +123,13 @@ sub v2i ($In, $Wdir) { # V_ideo TO I_mage
 	system($Command);
 };
 
-sub prepare ($Infile, $Workdir)	{
+sub prepare ($Infile)	{
+	my $Workdir	= tempdir(DIR => cwd(), CLEANUP => 1);
 	v2i($Infile, $Workdir) if is_correct($Infile);
+	return $Workdir;
 }
-####################################################
 
-# BLUR -> blur($Workdir, $Algo)
+##################### BLUR SECTION ###############################
 sub blur_image { #($Blur_Radius, $Blur_Power,$Filename)
 	my ($Blur_Radius, $Blur_Power,$Filename) = @$_;
 	my $Command = join(
@@ -168,9 +179,8 @@ sub blur{ # $Workdir, $Algo
 		default { return 0 }
 	}
 }
-####################################################
 
-# END STAGE -> end($Outfile, $Workdir)
+##################### END SECTION ###########################
 sub i2v($Out, $Wdir) { # I_mages TO V_ideo
 	my $Command = join(
 		"", # соединитель
@@ -183,16 +193,7 @@ sub i2v($Out, $Wdir) { # I_mages TO V_ideo
 }
 
 sub end($Outfile, $Workdir) { i2v($Outfile, $Workdir); }
-#####################################################
 
-{
-	my ($Infile, $Algo, $Outfile) = cli(@ARGV);
-	my $Workdir	= tempdir(DIR => cwd(), CLEANUP => 1);
-
-	prepare($Infile, $Workdir);
-	blur($Workdir, $Algo);
-	end($Outfile, $Workdir);
-}
 
 __END__
 =pod
