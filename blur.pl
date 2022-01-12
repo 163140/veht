@@ -20,8 +20,9 @@
 # ВОЛШЕБНЫЕ ЧИСЛА
 use constant BLUR_RADIUS=> 60; # МАКСИМАЛЬНЫЙ РАДИУС РАЗМЫТИЯ / man imagemagick
 use constant BLUR_POWER	=> 17; # МАКСИМАЛЬНЫЙ СИЛА РАЗМЫТИЯ / man imagemagick
-use constant FPS => 30;
-use constant LOGLEVEL => "quiet"; # "quiet" or "warning" or "debug"
+use constant FPS		=> 30;
+use constant LOGLEVEL	=> "quiet"; # "quiet" or "warning" or "debug"
+use constant IMGFMT		=> "png";
 
 use strict;
 use warnings;
@@ -47,9 +48,10 @@ my %Algo = (
 
 # Utility funcs
 sub is_correct ($Infile) { 1; }
-sub pnglist($Dir) {
+
+sub imglist($Dir) {
 	opendir(my $DH, $Dir);
-	my @Files = sort grep(/png/, readdir($DH));
+	my @Files = sort grep(/IMGFMT/, readdir($DH));
 	closedir $DH;
 	return @Files;
 }
@@ -107,7 +109,7 @@ sub v2i ($In, $Wdir) { # V_ideo TO I_mage
 		"ffmpeg", " -loglevel ", LOGLEVEL,
 		" -i ", $In,
 		" -vf fps=", FPS,
-		" \"", $Wdir, "/", "%7d.png\"");
+		" \"", $Wdir, "/", "%7d.", IMGFMT, "\"");
 	system($Command);
 };
 
@@ -129,8 +131,8 @@ sub blur_image { #($Blur_Radius, $Blur_Power,$Filename)
 }
 
 sub blur_in_linear($Workdir_with__pictures) {
-	my @PNGs = pnglist($Workdir_with__pictures);
-	my @Files = map { catfile($Workdir_with__pictures, $_) } @PNGs;
+	my @IMGs = imglist($Workdir_with__pictures);
+	my @Files = map { catfile($Workdir_with__pictures, $_) } @IMGs;
 
 	# y = kx + b, b=0
 	my	$len		= scalar(@Files);
@@ -144,8 +146,8 @@ sub blur_in_linear($Workdir_with__pictures) {
 }
 
 sub blur_linear_out($Workdir_with__pictures) {
-	my @PNGs = pnglist($Workdir_with__pictures);
-	my @Files = map { catfile($Workdir_with__pictures, $_) } @PNGs;
+	my @IMGs = imglist($Workdir_with__pictures);
+	my @Files = map { catfile($Workdir_with__pictures, $_) } @IMGs;
 
 	# y = - kx + b, b=0
 	my	$len		= scalar(@Files);
@@ -173,7 +175,7 @@ sub i2v($Out, $Wdir) { # I_mages TO V_ideo
 	my $Command = join(
 		"", # соединитель
 		"ffmpeg", " -loglevel ", LOGLEVEL,
-		" -y -i \"", $Wdir, "/", "%7d.png\"",
+		" -y -i \"", $Wdir, "/", "%7d.", IMGFMT, "\"",
 		" -vf fps=", FPS,
 		" -c:v ffv1 -pix_fmt yuva444p ",
 		$Out);
