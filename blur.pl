@@ -31,7 +31,7 @@ use utf8;
 use feature qw(switch signatures say);
 
 no warnings "experimental::signatures";
-no warnings "experimental::smartmatch";
+#no warnings "experimental::smartmatch";
 
 use File::Temp qw/tempdir cleanup tempfile/;
 use Cwd qw/cwd/;
@@ -40,10 +40,14 @@ use File::Spec::Functions;
 use MCE::Map;
 use Filesys::Df;
 
+use Data::Dumper;
+
 
 my %Algo = (
-	linear_in => 1,
-	linear_out =>1,
+	linear_in	=> sub ($Value, $Frame, $Frames) {
+			$Value * ( $Frame / $Frames );								 },
+	linear_out=> sub ($Value, $Frame, $Frames) {
+			$Value * ( 1 - $Frame / $Frames );						 },
 );
 
 ####################### MAIN SECTION ###########################
@@ -59,10 +63,11 @@ sub is_correct ($Infile) { 1; }
 
 sub imglist($Dir) {
 	opendir(my $DH, $Dir);
-	my @Files = sort grep(/IMGFMT/, readdir($DH));
+	my @Files = sort grep(/${\IMGFMT}/, readdir($DH));
 	closedir $DH;
 	return @Files;
 }
+
 sub round2 { my $Num = shift; return (int($Num*100)/100); }
 
 sub is_space_enough($File) {
@@ -141,43 +146,22 @@ sub blur_image { #($Blur_Radius, $Blur_Power,$Filename)
 	system($Command);
 }
 
-sub blur_in_linear($Workdir_with__pictures) {
+sub blur($Workdir_with__pictures, $Selected) {
 	my @IMGs = imglist($Workdir_with__pictures);
 	my @Files = map { catfile($Workdir_with__pictures, $_) } @IMGs;
 
-	# y = kx + b, b=0
 	my	$len		= scalar(@Files);
 	my	@a			= (1 .. $len);
-	my	@Radius	= map { int		( BLUR_RADIUS * ( $_ / $len ))	} @a;
-	my	@Power	= map { round2(	BLUR_POWER	* ( $_ / $len ))	} @a;
+	my	@Radius	= map {
+		int	( $Algo{$Selected}-> (BLUR_RADIUS, $_, $len ))
+	} @a;
+	my	@Power	= map {
+		round2( $Algo{$Selected}-> (BLUR_POWER	, $_, $len ))
+	} @a;
 
 	# список списков параметров для blur
 	my @Blur_options = zip(\@Radius, \@Power, \@Files);
 	mce_map { blur_image $_ } @Blur_options;
-}
-
-sub blur_linear_out($Workdir_with__pictures) {
-	my @IMGs = imglist($Workdir_with__pictures);
-	my @Files = map { catfile($Workdir_with__pictures, $_) } @IMGs;
-
-	# y = - kx + b, b=0
-	my	$len		= scalar(@Files);
-	my	@a			= (1 .. $len);
-	my	@Radius	= map { int		  ( BLUR_RADIUS	* ( 1 - $_ / $len )) } @a;
-	my	@Power	= map { round2	( BLUR_POWER	* ( 1 - $_ / $len )) } @a;
-
-	# список списков параметров для blur
-	my @Blur_options = zip(\@Radius, \@Power, \@Files);
-	mce_map { blur_image $_ } @Blur_options;
-}
-
-sub blur{ # $Workdir, $Algo
-	my ($Workdir, $Algo) = @_;
-	given ($Algo) {
-		blur_in_linear	($Workdir) when ("linear_in");
-		blur_linear_out	($Workdir) when ("linear_out");
-		default { return 0 }
-	}
 }
 
 ##################### END SECTION ###########################
@@ -196,6 +180,7 @@ sub end($Outfile, $Workdir) { i2v($Outfile, $Workdir); }
 
 
 __END__
+
 =pod
 
 =head1 NAME
