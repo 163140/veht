@@ -20,34 +20,30 @@
 # ВОЛШЕБНЫЕ ЧИСЛА
 use constant BLUR_RADIUS=> 60; # МАКСИМАЛЬНЫЙ РАДИУС РАЗМЫТИЯ / man imagemagick
 use constant BLUR_POWER	=> 17; # МАКСИМАЛЬНЫЙ СИЛА РАЗМЫТИЯ / man imagemagick
-use constant FPS		=> 30;
-use constant LOGLEVEL	=> "quiet"; # "quiet" or "warning" or "debug"
-use constant IMGFMT		=> "ppm";
+use constant FPS				=> 30;
+use constant LOGLEVEL		=> "quiet"; # "quiet" or "warning" or "debug"
+use constant IMGFMT			=> "ppm"; # Формат промежуточных картинок
 
 use strict;
 use warnings;
 use autodie;
 use utf8;
-use feature qw(switch signatures say);
+use feature								qw(signatures say);
 
-no warnings "experimental::signatures";
-#no warnings "experimental::smartmatch";
+no warnings								"experimental::signatures";
 
-use File::Temp qw/tempdir cleanup tempfile/;
-use Cwd qw/cwd/;
-use List::Util qw/zip/;
-use File::Spec::Functions;
+use File::Temp						qw/tempdir cleanup tempfile/;
+use Cwd										qw/cwd/;
+use List::Util						qw/zip/;
+use File::Spec::Functions	qw/catfile/;
 use MCE::Map;
 use Filesys::Df;
 
-use Data::Dumper;
-
-
 my %Algo = (
 	linear_in	=> sub ($Value, $Frame, $Frames) {
-			$Value * ( $Frame / $Frames );								 },
+			$Value * ( $Frame / $Frames );				 },
 	linear_out=> sub ($Value, $Frame, $Frames) {
-			$Value * ( 1 - $Frame / $Frames );						 },
+			$Value * ( 1 - $Frame / $Frames );		 },
 );
 
 ####################### MAIN SECTION ###########################
@@ -74,7 +70,7 @@ sub is_space_enough($File) {
 	my $Frames =
 		qx(ffprobe -v error -select_streams v:0 -count_packets -show_entries stream=nb_read_packets -of csv=p=0 $File);
 	my ($Fh, $Temp) = tempfile();
-	my $Out = $Temp . ".ppm";
+	my $Out = $Temp . "." . IMGFMT;
 	qx(ffmpeg -v 0 -ss 00:00 -i $File -vframes 1 -q:v 2 $Out);
 	my $Size = -s $Out;
 	my $Required = $Size * $Frames;
@@ -82,8 +78,7 @@ sub is_space_enough($File) {
 	my $CWD_free_space = df($File, 1)->{"bavail"};
 	unlink $Out;
 	close $Fh;
-	my $Is_ok = (($Required < $Tmp_free_space)
-					 or  ($Required < $CWD_free_space));
+	my $Is_ok = (($Required < $Tmp_free_space) or ($Required < $CWD_free_space));
 	return $Is_ok;
 }
 
@@ -98,18 +93,12 @@ sub help_msg {
 sub cli {
 	my ($In, $Command, $Out) = @_;
 
-	if (not ( (scalar @_) == 3)) {
-		help_msg();
-		die "Wrong args\n";
-	}
+	if (not ( (scalar @_) == 3)) { help_msg() and die "Wrong args\n"; }
+
 	if (not (-e -r $In)) {
-		help_msg();
-		die "Input file don't exist or unreadable\n"
-	}
-	if (not $Algo{$Command}) {
-		help_msg();
-		die "$Command not implemented";
-	}
+		help_msg() and die "Input file don't exist or unreadable\n"; }
+
+	if (not $Algo{$Command}) { help_msg() and die "$Command not implemented"; }
 
 	die "Destination directory unwritable\n" unless (-w cwd());
 	warn "Output file exist\n" if (-e $Out);
@@ -197,15 +186,15 @@ blur.pl F<infile> blur_law F<outfile>
 
 =over 2
 
-=item F<infile> 
+=item F<infile>
 
 Any B<valid> and acceptable by your ffmpeg video file
 
-=item blur_law 
+=item blur_law
 
 Blur algorithm. Only C<linear_in> and C<linear_out> implemented
 
-=item F<ourfile> 
+=item F<ourfile>
 
 Video stream encoded in ffv1 by your ffmpeg and packed to mkv
 
