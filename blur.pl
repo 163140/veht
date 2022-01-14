@@ -107,19 +107,13 @@ sub cli {
 }
 
 ##################### PREPARE SECTION ###############################
-sub v2i ($In, $Wdir) { # V_ideo TO I_mage
-	my $Command = join(
-		"", # соединитель
-		"ffmpeg", " -loglevel ", LOGLEVEL,
-		" -i ", $In,
-		" -vf fps=", FPS,
-		" \"", $Wdir, "/", "%7d.", IMGFMT, "\"");
-	system($Command);
+sub to_images ($In, $Wdir) {
+	qx | ffmpeg -loglevel ${\LOGLEVEL} -i $In -vf ${\FPS} "$Wdir/%7d.${\IMGFMT}" |;
 };
 
 sub prepare ($Infile)	{
 	my $Workdir	= tempdir(DIR => cwd(), CLEANUP => 1);
-	v2i($Infile, $Workdir) if is_correct($Infile);
+	to_images($Infile, $Workdir) if is_correct($Infile);
 	return $Workdir;
 }
 
@@ -154,18 +148,11 @@ sub blur($Workdir_with__pictures, $Selected) {
 }
 
 ##################### END SECTION ###########################
-sub i2v($Out, $Wdir) { # I_mages TO V_ideo
-	my $Command = join(
-		"", # соединитель
-		"ffmpeg", " -loglevel ", LOGLEVEL,
-		" -y -i \"", $Wdir, "/", "%7d.", IMGFMT, "\"",
-		" -vf fps=", FPS,
-		" -c:v ffv1 -pix_fmt yuva444p ",
-		$Out);
-	system($Command);
+sub to_video($Out, $Wdir) {
+	qx | ffmpeg -loglevel ${\LOGLEVEL} -y -i "$Wdir/%d.${\IMGFMT}" -vf fps=${\FPS} -c:v ffv1 -pix_fmt yuva444p $Out |;
 }
 
-sub end($Outfile, $Workdir) { i2v($Outfile, $Workdir); }
+sub end($Outfile, $Workdir) { to_video($Outfile, $Workdir); }
 
 
 __END__
