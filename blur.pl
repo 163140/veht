@@ -40,10 +40,10 @@ use MCE::Map;
 use Filesys::Df;
 
 my %Algo = (
-	linear_in	=> sub ($Value, $Frame, $Frames) {
-			$Value * ( $Frame / $Frames );				 },
-	linear_out=> sub ($Value, $Frame, $Frames) {
-			$Value * ( 1 - $Frame / $Frames );		 },
+	linear_in	=> sub ($Value, $Frame, $Frames){
+			$Value * ( $Frame / $Frames );				},
+	linear_out=> sub ($Value, $Frame, $Frames){
+			$Value * ( 1 - $Frame / $Frames );		},
 );
 
 ####################### MAIN SECTION ###########################
