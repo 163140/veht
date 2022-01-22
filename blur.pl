@@ -44,6 +44,10 @@ my %Algo = (
 			$Value * ( $Frame / $Frames );				},
 	linear_out=> sub ($Value, $Frame, $Frames){
 			$Value * ( 1 - $Frame / $Frames );		},
+	cubic_in	=> sub ($Value, $Frame, $Frames){
+			$Value * ( $Frame / $Frames )**3;			},
+	cubic_out	=> sub ($Value, $Frame, $Frames){
+			$Value * ( 1 - $Frame / $Frames )**3;	},
 );
 
 ####################### MAIN SECTION ###########################
@@ -179,7 +183,7 @@ Any B<valid> and acceptable by your ffmpeg video file
 
 =item blur_law
 
-Blur algorithm. Only C<linear_in> and C<linear_out> implemented
+Blur algorithm. Implemented C<linear_in>, C<linear_out>, C<cubic_in>, C<cubic_out>.
 
 =item F<ourfile>
 
