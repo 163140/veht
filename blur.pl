@@ -21,7 +21,7 @@
 use constant BLUR_RADIUS=> 60; # МАКСИМАЛЬНЫЙ РАДИУС РАЗМЫТИЯ / man imagemagick
 use constant BLUR_POWER	=> 17; # МАКСИМАЛЬНЫЙ СИЛА РАЗМЫТИЯ / man imagemagick
 use constant FPS				=> 30;
-use constant LOGLEVEL		=> "quiet"; # "quiet" or "warning" or "debug"
+use constant LOGLEVEL		=> "warning"; # "quiet" or "warning" or "debug"
 use constant IMGFMT			=> "ppm"; # Формат промежуточных картинок
 
 use strict;
@@ -108,7 +108,7 @@ sub cli {
 
 ##################### PREPARE SECTION ###############################
 sub to_images ($In, $Wdir) {
-	qx | ffmpeg -loglevel ${\LOGLEVEL} -i $In -vf ${\FPS} "$Wdir/%7d.${\IMGFMT}" |;
+	qx | ffmpeg -loglevel ${\LOGLEVEL} -i $In -vf fps=${\FPS} "$Wdir"/%7d.${\IMGFMT} |;
 };
 
 sub prepare ($Infile)	{
@@ -149,7 +149,7 @@ sub blur($Workdir_with__pictures, $Selected) {
 
 ##################### END SECTION ###########################
 sub to_video($Out, $Wdir) {
-	qx | ffmpeg -loglevel ${\LOGLEVEL} -y -i "$Wdir/%d.${\IMGFMT}" -vf fps=${\FPS} -c:v ffv1 -pix_fmt yuva444p $Out |;
+	qx | ffmpeg -loglevel ${\LOGLEVEL} -y -i "$Wdir"/%7d.${\IMGFMT} -vf fps=${\FPS} -c:v ffv1 -pix_fmt yuva444p $Out |;
 }
 
 sub end($Outfile, $Workdir) { to_video($Outfile, $Workdir); }
