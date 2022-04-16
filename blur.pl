@@ -14,15 +14,15 @@
 #       AUTHOR: EA1A87, 163140@autistici.org
 #      VERSION: 0.0
 #      CREATED: 06.01.2022 15:24:07
-#     REVISION: 0
+#     REVISION: 15
 #===============================================================================
 
 # ВОЛШЕБНЫЕ ЧИСЛА
 use constant BLUR_RADIUS=> 60; # МАКСИМАЛЬНЫЙ РАДИУС РАЗМЫТИЯ / man imagemagick
 use constant BLUR_POWER	=> 17; # МАКСИМАЛЬНЫЙ СИЛА РАЗМЫТИЯ / man imagemagick
-use constant FPS				=> 30;
+use constant FPS				=> 30; # in and out video fps
 use constant LOGLEVEL		=> "warning"; # "quiet" or "warning" or "debug"
-use constant IMGFMT			=> "ppm"; # Формат промежуточных картинок
+use constant IMGFMT			=> "ppm"; # intermediate image format. Fastest.
 
 use strict;
 use warnings;
@@ -90,20 +90,16 @@ sub is_space_enough($File) {
 ############################ CLI SECTION ###################################
 sub help_msg {
 	say "USAGE: blur.pl input_video_file blur_algorithm outputvideo.mkv";
-	say "Implemented blur algorithms: linear_in, linear_out";
-	say "See perldoc blur.pl for details\n";
+	say "Implemented blur algorithms: linear_in, linear_out, cubic_in, cubic_out";
+	say "See perldoc blur.pl for details";
 }
 
 sub cli {
 	my ($In, $Command, $Out) = @_;
-
 	if (not ( (scalar @_) == 3)) { help_msg() and die "Wrong args\n"; }
-
 	if (not (-e -r $In)) {
 		help_msg() and die "Input file don't exist or unreadable\n"; }
-
 	if (not $Algo{$Command}) { help_msg() and die "$Command not implemented"; }
-
 	die "Destination directory unwritable\n" unless (-w cwd());
 	warn "Output file exist\n" if (-e $Out);
 	die "No free space\n" unless is_space_enough($In);
@@ -125,7 +121,7 @@ sub prepare ($Infile)	{
 sub blur_image { #($Blur_Radius, $Blur_Power,$Filename)
 	my ($Blur_Radius, $Blur_Power,$Filename) = @$_;
 	my $Command = join(
-		"", # без сепарации
+		"",
 		"convert \"", $Filename, "\"",
 		" -blur ", $Blur_Radius, "x", $Blur_Power,
 		" \"", $Filename, "\""
