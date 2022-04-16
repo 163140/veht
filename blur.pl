@@ -16,20 +16,25 @@
 #      CREATED: 06.01.2022 15:24:07
 #     REVISION: 15
 #===============================================================================
+sub getfps {
+	my $File = shift;
+	my $Fps = qx | ffprobe -v error -select_streams v -of default=noprint_wrappers=1:nokey=1 -show_entries stream=r_frame_rate $File |;
+	$Fps =~ s/^\s+|\s+$//g;
+	return $Fps;
+}
 
 # ВОЛШЕБНЫЕ ЧИСЛА
 use constant BLUR_RADIUS=> 60; # МАКСИМАЛЬНЫЙ РАДИУС РАЗМЫТИЯ / man imagemagick
 use constant BLUR_POWER	=> 17; # МАКСИМАЛЬНЫЙ СИЛА РАЗМЫТИЯ / man imagemagick
-use constant FPS				=> 30; # in and out video fps
 use constant LOGLEVEL		=> "warning"; # "quiet" or "warning" or "debug"
 use constant IMGFMT			=> "ppm"; # intermediate image format. Fastest.
+use constant FPS				=> &getfps($ARGV[0]); # in and out video fps
 
 use strict;
 use warnings;
 use autodie;
 use utf8;
 use feature								qw(signatures say);
-
 no warnings								"experimental::signatures";
 
 use File::Temp						qw/tempdir cleanup tempfile/;
