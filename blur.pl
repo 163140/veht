@@ -120,13 +120,8 @@ sub prepare ($Infile)	{
 ##################### BLUR SECTION ###############################
 sub blur_image { #($Blur_Radius, $Blur_Power,$Filename)
 	my ($Blur_Radius, $Blur_Power,$Filename) = @$_;
-	my $Command = join(
-		"",
-		"convert \"", $Filename, "\"",
-		" -blur ", $Blur_Radius, "x", $Blur_Power,
-		" \"", $Filename, "\""
-	);
-	system($Command);
+	my $Blurring = join("x", $Blur_Radius, $Blur_Power);
+	qx | convert $Filename -blur $Blurring $Filename |;
 }
 
 sub blur($Workdir_with__pictures, $Selected) {
