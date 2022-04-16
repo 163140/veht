@@ -68,7 +68,7 @@ sub imglist($Dir) {
 	return @Files;
 }
 
-sub round2 { my $Num = shift; return (int($Num*100)/100); }
+sub round2($Num) { return (int($Num*100)/100); }
 
 sub is_space_enough($File) {
 	my $Frames =
@@ -118,16 +118,15 @@ sub prepare ($Infile)	{
 }
 
 ##################### BLUR SECTION ###############################
-sub blur_image { #($Blur_Radius, $Blur_Power,$Filename)
-	my ($Blur_Radius, $Blur_Power,$Filename) = @$_;
+sub blur_image($Opts) {
+	my ($Blur_Radius, $Blur_Power,$Filename) = @$Opts;
 	my $Blurring = join("x", $Blur_Radius, $Blur_Power);
-	qx | convert $Filename -blur $Blurring $Filename |;
+	qx | convert "$Filename" -blur $Blurring "$Filename" |;
 }
 
 sub blur($Workdir_with__pictures, $Selected) {
 	my @IMGs = imglist($Workdir_with__pictures);
 	my @Files = map { catfile($Workdir_with__pictures, $_) } @IMGs;
-
 	my	$len		= scalar(@Files);
 	my	@a			= (1 .. $len);
 	my	@Radius	= map {
